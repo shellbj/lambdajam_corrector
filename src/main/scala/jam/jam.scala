@@ -3,13 +3,6 @@ package jam
 import scala.util.matching.Regex
 
 object corrector {
-
-  type Word = String
-
-  type Correction = List[Word]
-
-  type SplitWord = List[(Word, Word)]
-
   val word = """[a-z]+""".r
   val source = scala.io.Source.fromFile("/home/evan/lambda/spelling-jam/data/test1.txt")
   val text = source.mkString
@@ -31,13 +24,13 @@ object corrector {
     val s = toTuples(w)
     Set(deletes(s) :: transposed(s) :: replaces(s) :: inserts(s))
 
-    def toTuples(w: Word): SplitWord =
+    def toTuples(w: String): List[(String, String)] =
       for {
         i <- 0 to w.length
       } yield w.splitAt(i)
 
 
-    def deletes(s: SplitWord): Correction = {
+    def deletes(s: List[(String, String)]): List[String] = {
       for {
         (a, b) <- s
         if b != None
@@ -45,14 +38,14 @@ object corrector {
       } yield a ++ b.tail
     }
 
-    def transposed(s: SplitWord): Correction = {
+    def transposed(s: List[(String, String)]): List[String] = {
       for {
         (a, b) <- s
         if b.length > 1
       } yield (((a ++ b.tail.head) ++ b.head) ++ b.drop(2))
     }
 
-    def replaces(s: SplitWord): Correction = {
+    def replaces(s: List[(String, String)]): List[String] = {
       for {
         (a, b) <- s
         if b != None
@@ -61,7 +54,7 @@ object corrector {
       } yield  a :: c :: b.tail
     }
 
-    def inserts(s: SplitWord): Correction = {
+    def inserts(s: List[(String, String)]): List[String] = {
       for {
         (a, b) <- s
         c <- alphabet
