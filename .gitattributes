@@ -1,0 +1,3 @@
+/gradlew -text -diff
+/gradlew.bat -text -diff
+/wrapper/gradle/* -text -diff

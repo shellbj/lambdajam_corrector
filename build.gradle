@@ -1,0 +1,98 @@
+apply plugin: 'scala'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+apply plugin: 'ensime'
+apply plugin: 'application'
+
+version = '1.0'
+group = 'org.coursera'
+mainClassName = 'streams.Bloxorz'
+
+ext {
+    scalaMajorVersion = '2.10'
+    scalaPatchVersion = '.1'
+    scalaVersion = "${scalaMajorVersion}${scalaPatchVersion}"
+}
+
+buildscript {
+  repositories { mavenLocal() }
+}
+
+repositories {
+  mavenCentral()
+  maven { url 'https://oss.sonatype.org/content/repositories/releases' }
+  maven { url 'http://namin.github.com/maven-repository/' }
+  maven { url 'http://repo.spray.cc/' }
+  maven { url 'https://raw.github.com/pniederw/expecty/master/m2repo/' }
+}
+
+configurations {
+  provided
+  style
+}
+
+dependencies {
+  compile "org.scala-lang:scala-library:${scalaVersion}"
+
+  testCompile 'junit:junit:4.11'
+  testCompile "org.scalatest:scalatest_${scalaMajorVersion}:1.9.1"
+  testCompile 'org.expecty:expecty:0.9'
+
+  runtime "org.scala-lang:jline:${scalaVersion}"
+  runtime "org.scala-lang:scala-compiler:${scalaVersion}"
+  runtime "org.scala-lang:scala-library:${scalaVersion}"
+
+  style 'org.scalastyle:scalastyle-batch_2.9.2:0.2.0'
+}
+
+//sourceSets.main.compileClasspath += configurations.provided
+
+compileScala {
+    scalaCompileOptions.with {
+        additionalParameters = ['-deprecation', '-feature']
+    }
+
+    // optionally specify host and port of the daemon:
+    scalaCompileOptions.useCompileDaemon = true
+    scalaCompileOptions.daemonServer = 'localhost:4243'
+}
+
+tasks.withType(ScalaCompile) {
+  scalaCompileOptions.useAnt = false
+}
+
+uploadArchives {
+  repositories.mavenDeployer {
+    repository url: "file:///${projectDir}/m2repo"
+  }
+}
+
+test {
+    testLogging {
+        exceptionFormat 'full'
+        showStackTraces = false
+    }
+}
+
+run.configure {
+  args = [System.getProperty('args', '')]
+}
+
+scalaConsole.configure {
+  classpath = configurations.runtime
+  //scalaRuntime.inferScalaClasspath(sourceSets.main.runtimeClasspath)
+}
+
+task style(type: JavaExec) {
+    classpath = configurations.style
+    main = 'org.scalastyle.Main'
+    args = ['--config',
+            relativePath('project/scalastyle_config.xml'),
+            relativePath('src/main/scala')
+           ]
+}
+
+task wrapper(type: Wrapper) {
+    jarFile = 'wrapper/gradle/gradle-wrapper.jar'
+    gradleVersion = '1.6'
+}

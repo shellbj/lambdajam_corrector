@@ -1,0 +1,8 @@
+.classpath
+.project
+.settings/
+.ensime
+.ensime_lucene/
+target/
+.gradle/
+build/
